@@ -19,6 +19,7 @@
 * [Requisitos](#requisitos)
 * [Tecnologias](#tecnologias)
 * [Fluxo do Software](#fluxo-do-software)
+* [Tabelas](#tabelas)
 * [Dificuldades](#dificuldades)
 * [Ambiente_de_Testes](#ambiente-de-testes)
 * [Resultados](#resultados)
@@ -108,6 +109,9 @@ FireAuth - Para Autentição com FireBase
 
 De acordo com diagrama da imagem, a autenticação é realizada via Firebase, garantindo o acesso seguro dos usuários por meio de tokens JWT. A API desenvolvida com FastAPI gerencia o recebimento de fotos, CPF e a autenticação, realizando o reconhecimento facial e a consulta de informações em bancos PostgreSQL e no serviço de armazenamento MinIO. O sistema permite identificar usuários ou suspeitos a partir da análise facial, cruzando dados com os cadastros existentes. Por fim, os resultados são retornados à aplicação móvel, completando o fluxo de verificação e resposta.
 
+
+## Tabelas
+
 <div align="center"> 
 
 <table>
@@ -116,7 +120,9 @@ De acordo com diagrama da imagem, a autenticação é realizada via Firebase, ga
     <td><img src="images/ssp_criminosos - public.png" width="600"/></td>
   </tr>
 </table>
-<p> Tabelas </p>
+<p> Tabelas dos Bancos </p>
+
+
 
 </div>
 
