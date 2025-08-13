@@ -8,14 +8,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Atualiza e instala dependências necessárias para compilação
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     build-essential \
     cmake \
     python3-dev \
     libboost-all-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "Packages installed successfully"
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && echo "Packages installed successfully"
+
 
 # Copia apenas o requirements.txt para usar cache
 COPY requirements.txt .
