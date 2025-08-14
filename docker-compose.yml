@@ -1,13 +1,25 @@
 version: "3.9"
 
 services:
+  facecheck_api:
+    image: and3510/visionapp:develop
+    container_name: facecheck_api
+    working_dir: /app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    environment:
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.env:/app/.env
+      - ./firebase_config.json:/app/firebase_config.json
 
   ssp_criminosos:
     image: pgvector/pgvector:pg17
-    container_name: criminosos
+    container_name: bd_criminosos
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: #senha123
+      POSTGRES_PASSWORD: and3872#
       POSTGRES_DB: ssp_criminosos
     ports:
       - "5432:5432"
@@ -16,10 +28,10 @@ services:
 
   ssp_usuarios:
     image: postgres:17
-    container_name: usuarios
+    container_name: bd_usuarios
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: #senha123
+      POSTGRES_PASSWORD: and3872#
       POSTGRES_DB: ssp_usuario
     ports:
       - "5433:5432"  # Evita conflito de porta com o primeiro PostgreSQL
@@ -43,3 +55,5 @@ volumes:
   pgdata_usuarios:
   pgdata_criminosos:
   minio-data:
+
+
