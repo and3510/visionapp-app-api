@@ -8,6 +8,8 @@
 ![Static Badge](https://img.shields.io/badge/postgresql-blue?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/docker-blue?style=for-the-badge&logo=docker&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/firebase-red?style=for-the-badge&logo=firebase&logoColor=yellow)
+![Static Badge](https://img.shields.io/badge/v1.1.0-blue?style=flat)
+
 
   
 </div>
