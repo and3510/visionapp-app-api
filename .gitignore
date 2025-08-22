@@ -5,3 +5,7 @@ __pycache__/
 venv
 
 firebase_config.json
+
+
+./docker-compose.yml
+./Dockerfile
