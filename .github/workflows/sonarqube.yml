@@ -10,6 +10,7 @@ jobs:
   build:
     name: Sonarqube
     runs-on: ubuntu-latest
+    environment: SonarQube
     steps:
       - uses: actions/checkout@v2
         with:
