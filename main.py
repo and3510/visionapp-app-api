@@ -13,6 +13,7 @@ from config.database import SspUsuarioBase, SspCriminososBase
 from functions.auth_crud import verify_crud_api_key
 
 
+from functions.auth_keycloak import verify_token_keycloak
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
@@ -54,12 +55,7 @@ initialize_app(cred)
 # ----------- Carregar variáveis de ambiente -----------
 
 
-app = FastAPI(
-    title="API VISIONAPP",
-    docs_url=None,        # Desativa Swagger UI (/docs)
-    redoc_url=None,       # Desativa Redoc (/redoc)
-    openapi_url=None      # Desativa /openapi.json
-)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -86,7 +82,13 @@ SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 class FirebaseToken(BaseModel):
     firebase_token: str
 
+@app.get("/public", tags=["KeyCloak"])
+def public_route():
+    return {"msg": "Qualquer um acessa"}
 
+@app.get("/secure", tags=["KeyCloak"])
+def secure_route(user=Depends(verify_token_keycloak)):
+    return {"msg": f"Bem-vindo {user['preferred_username']}"}
 
 @app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
 
@@ -107,7 +109,7 @@ async def get_firebase_auth(
 
 
 
-@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
 
 async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
@@ -123,7 +125,7 @@ async def get_buscar_similaridade(
 
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
 async def get_buscar_ficha_criminal(
     cpf: str, # <- Novo parâmetro obrigatório
     ficha_db: ssp_criminosos_db_dependency,
