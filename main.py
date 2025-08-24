@@ -44,7 +44,10 @@ from fastapi import Query
 load_dotenv()
 
 
-
+asdasdasdas
+as
+da
+sda
 # Inicializar Firebase Admin
 cred = credentials.Certificate("firebase_config.json")
 initialize_app(cred)
