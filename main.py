@@ -39,7 +39,10 @@ from functions.crud.create_crime import CrimeStatus, create_crime
 
 from fastapi import Query
 
-
+asdf
+as
+asd
+f
 
 load_dotenv()
 
