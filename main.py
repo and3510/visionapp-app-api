@@ -3,6 +3,11 @@
 
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from fastapi.params import Header
+import requests
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
+from jose import JWTError, jwt, jwk
+
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,22 +17,21 @@ from sqlalchemy.orm import Session
 from config.database import SspUsuarioBase, SspCriminososBase
 from functions.auth_crud import verify_crud_api_key
 
-
-from functions.auth_keycloak import verify_token_keycloak
+from functions.auth_keycloak import decode_jwt
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
-from firebase_admin import credentials, initialize_app
+# from firebase_admin import credentials, initialize_app
 
 from dotenv import load_dotenv
 
-from functions.auth_utils import verify_token
+# from functions.auth_utils import verify_token
 
 
-from functions.requests.auth_with_firebase import auth_with_firebase
+# from functions.requests.auth_with_firebase import auth_with_firebase
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 
 from functions.requests.buscar_similaridade import buscar_similaridade
-from functions.requests.perfil_usuario import perfil_usuario
+# from functions.requests.perfil_usuario import perfil_usuario
 
 from functions.crud.create_identidade import create_identidade
 from functions.crud.delete_identidade import delete_identidade
@@ -45,17 +49,9 @@ from fastapi import Query
 load_dotenv()
 
 
-
-# Inicializar Firebase Admin
-cred = credentials.Certificate("firebase_config.json")
-initialize_app(cred)
-
-
-
-# ----------- Carregar variáveis de ambiente -----------
-
-
 app = FastAPI()
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -79,33 +75,99 @@ SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 # ---------- Rotas -----------
 
 
-class FirebaseToken(BaseModel):
-    firebase_token: str
+# class FirebaseToken(BaseModel):
+#     firebase_token: str
+  
 
-@app.get("/public", tags=["KeyCloak"])
-def public_route():
-    return {"msg": "Qualquer um acessa"}
+# @app.get("/protected", tags=["KeyCloak"])
+# async def protected_route(authorization: str = Header(...)):
+#     """
+#     Valida o token enviado no header Authorization: Bearer <token>
+#     """
+#     if not authorization.startswith("Bearer "):
+#         raise HTTPException(status_code=401, detail="Token inválido")
+#     token = authorization.split(" ")[1]
+#     decoded_token = decode_jwt(token)
+#     return {"message": "You have access to this route", "user": decoded_token}
+    
+# @app.get("/callback", tags=["KeyCloak"])
+# async def keycloak_callback(code: str):
+#     """
+#     Recebe o authorization code do Keycloak e troca pelo token
+#     """
+#     token_url = f"{KEYCLOAK_URL}/protocol/openid-connect/token"
+#     data = {
+#         "grant_type": "authorization_code",
+#         "client_id": CLIENT_ID,
+#         "client_secret": KEYCLOAK_CLIENT_SECRET,
+#         "code": code,
+#         "redirect_uri": "http://localhost:8000/callback",  # mesma URL registrada no Keycloak
+#     }
+#     response = requests.post(token_url, data=data)
+#     if response.status_code != 200:
+#         raise HTTPException(status_code=400, detail="Erro ao trocar código por token")
+#     return response.json()  # aqui vem access_token, refresh_token, id_token
 
-@app.get("/secure", tags=["KeyCloak"])
-def secure_route(user=Depends(verify_token_keycloak)):
-    return {"msg": f"Bem-vindo {user['preferred_username']}"}
 
-@app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
 
-async def get_perfil_usuario(
-    db: ssp_usuario_db_dependency,
-    user_data: dict = Depends(verify_token),
-):
-    return perfil_usuario(db, user_data)
+# @app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
+
+# async def get_perfil_usuario(
+#     db: ssp_usuario_db_dependency,
+#     user_data: dict = Depends(verify_token),
+# ):
+#     return perfil_usuario(db, user_data)
 
 
 
-@app.post("/auth/firebase", tags=["Requisição do Aplicativo"])
+# @app.post("/auth/firebase", tags=["Requisição do Aplicativo"])
 
-async def get_firebase_auth(
-    token_data: str
-):
-    return auth_with_firebase(token_data)
+# async def get_firebase_auth(
+#     token_data: str
+# ):
+#     return auth_with_firebase(token_data)
+
+bearer_scheme = HTTPBearer()
+
+KEYCLOAK_URL = "http://localhost:8090/realms/interno/protocol/openid-connect"
+CLIENT_ID = "visionapp"
+
+# Carrega as chaves públicas do Keycloak
+jwks_data = requests.get(f"{KEYCLOAK_URL}/certs").json()
+
+
+def get_public_key(token: str):
+    headers = jwt.get_unverified_header(token)
+    kid = headers["kid"]
+    # Recarrega sempre as chaves
+    jwks_data = requests.get(f"{KEYCLOAK_URL}/certs").json()
+    for key in jwks_data["keys"]:
+        if key["kid"] == kid:
+            return key
+    raise HTTPException(status_code=401, detail="Chave pública não encontrada")
+
+
+
+def validate_token(credentials=Depends(bearer_scheme)):
+    token = credentials.credentials
+    public_key = get_public_key(token)
+    try:
+        # Decodifica o token sem verificar 'aud' diretamente
+        payload = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            audience="account"  # desativa verificação de 'aud'
+        )
+
+        # Verifica se o token é do client correto
+        if payload.get("azp") != CLIENT_ID:
+            raise HTTPException(status_code=401, detail="Token não autorizado para este client")
+
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")
+
 
 
 
@@ -123,9 +185,12 @@ async def get_buscar_similaridade(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 
+@app.get("/dados")
+def dados(user=Depends(validate_token)):
+    return {"msg": "Token válido", "usuario": user.get("preferred_username")}
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(validate_token)], tags=["Requisição do Aplicativo"])
 async def get_buscar_ficha_criminal(
     cpf: str, # <- Novo parâmetro obrigatório
     ficha_db: ssp_criminosos_db_dependency,

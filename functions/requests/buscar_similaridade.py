@@ -57,7 +57,7 @@ def buscar_similaridade(
 
     similaridades = []
     for identidade in identidades:
-        vetor_facial_banco = np.array(json.loads(identidade.vetor_facial))
+        vetor_facial_banco = np.array(identidade.vetor_facial)
         distancia = np.linalg.norm(vetor_facial - vetor_facial_banco)
         foto_url_result = proxy_object_by_cpf(identidade.cpf)
         foto_url = foto_url_result["url"] if isinstance(foto_url_result, dict) and "url" in foto_url_result else None
