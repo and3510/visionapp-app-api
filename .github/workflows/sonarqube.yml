@@ -23,7 +23,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       
       - uses: sonarsource/sonarqube-quality-gate-action@v1.2.0
-        with:
+        env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       # If you wish to fail your job when the Quality Gate is red, uncomment the
