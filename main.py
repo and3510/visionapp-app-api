@@ -171,18 +171,24 @@ def validate_token(credentials=Depends(bearer_scheme)):
 
 
 
-@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
-
+@app.post(
+    "/buscar-similaridade-foto/", 
+    tags=["Requisição do Aplicativo"]
+)
 async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
     file: UploadFile = File(...),
-    matricula: str = Query(...)
+    matricula: str = Query(...),
+    user=Depends(validate_token),   # ← aqui você pega o payload do token
 ):
     try:
+
         return buscar_similaridade(matricula, ficha_db, user_db, file)
+
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+
     
 
 @app.get("/dados")
