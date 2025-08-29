@@ -1,6 +1,5 @@
 # ----------- Bibliotecas -----------
 
-dlasf,aiksdçmf→ mdflasdf
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
