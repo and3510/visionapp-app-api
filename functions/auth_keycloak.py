@@ -1,50 +1,48 @@
-from typing import Optional
-from jose import jwt, jwk, JWTError
+from fastapi.params import Depends
+from jose import jwt
 from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer
 import requests
 
-# Configurações do Keycloak
-KEYCLOAK_URL = "http://localhost:8090/realms/interno"
+
+bearer_scheme = HTTPBearer()
+
+KEYCLOAK_URL = "http://localhost:8090/realms/interno/protocol/openid-connect"
 CLIENT_ID = "visionapp"
-KEYCLOAK_CLIENT_SECRET = "I0M9dvrSj9lMW0Wh7NlN5Cw02UVthfld"
-KEYCLOAK_API_URL = f"{KEYCLOAK_URL}/protocol/openid-connect/token"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{KEYCLOAK_API_URL}")
-
-# Buscar a chave pública do Keycloak
-def get_keycloak_public_key():
-        jwt_url = f"{KEYCLOAK_URL}/protocol/openid-connect/certs"
-        response = requests.get(jwt_url)
-        return response.json()
+jwks_data = requests.get(f"{KEYCLOAK_URL}/certs").json()
 
 
-# Função para validar o token JWT
-def decode_jwt(token: str):
-    public_key = get_keycloak_public_key()
+def get_public_key(token: str):
     headers = jwt.get_unverified_header(token)
-    if not headers or 'kid' not in headers:
-        raise HTTPException(status_code=403, detail="Invalid token: no kid header")
-    for key in public_key['keys']:
-        if key['kid'] == headers['kid']:
-            try:
-                key_obj = jwk.construct(key)
-                # Ajuste aqui: use o valor correto do audience
-                payload = jwt.decode(token, key_obj, algorithms=['RS256'], audience="account")
-                return payload
-            except JWTError as e:
-                raise HTTPException(status_code=403, detail="Token validation error: " + str(e))
-    raise HTTPException(status_code=403, detail="Invalid key")
+    kid = headers["kid"]
+    # Recarrega sempre as chaves
+    jwks_data = requests.get(f"{KEYCLOAK_URL}/certs").json()
+    for key in jwks_data["keys"]:
+        if key["kid"] == kid:
+            return key
+    raise HTTPException(status_code=401, detail="Chave pública não encontrada")
 
 
-def get_tokens(code: str):
-    url = "http://localhost:8090/realms/interno/protocol/openid-connect/token"
-    data = {
-        "grant_type": "authorization_code",
-        "client_id": "visionapp",
-        "client_secret": "I0M9dvrSj9lMW0Wh7NlN5Cw02UVthfld",
-        "code": code,
-        "redirect_uri": "http://localhost:8000/callback",
-    }
-    response = requests.post(url, data=data)
-    return response.json()
+
+def validate_token(credentials=Depends(bearer_scheme)):
+    token = credentials.credentials
+    public_key = get_public_key(token)
+    try:
+        # Decodifica o token sem verificar 'aud' diretamente
+        payload = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            audience="account"  # desativa verificação de 'aud'
+        )
+
+        # Verifica se o token é do client correto
+        if payload.get("azp") != CLIENT_ID:
+            raise HTTPException(status_code=401, detail="Token não autorizado para este client")
+
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")
+
+
