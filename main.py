@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from config.database import SspUsuarioBase, SspCriminososBase
 from functions.auth_crud import verify_crud_api_key
 
-from functions.auth_keycloak import validate_token
+from functions.auth_keycloak import get_auth
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
@@ -77,7 +77,7 @@ async def get_buscar_similaridade(
     user_db: ssp_usuario_db_dependency,
     file: UploadFile = File(...),
     matricula: str = Query(...),
-    user=Depends(validate_token),   # ← aqui você pega o payload do token
+    user=Depends(get_auth),   # ← aqui você pega o payload do token
 ):
     try:
 
@@ -86,7 +86,12 @@ async def get_buscar_similaridade(
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-    
+@app.get("/me", tags=["Requisição do Aplicativo"])
+def me_interno(token: dict = Depends(get_auth)):
+    return {
+        "token": token["token"],
+        "informacoes": token.get("payload")  # Aqui você já pega o payload JWT
+    }
 
 
 @app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
@@ -95,7 +100,7 @@ async def get_buscar_ficha_criminal(
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
     matricula: str = Query(...),
-    user=Depends(validate_token)
+    user=Depends(get_auth)
 ):
     try:
         return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db)
@@ -103,15 +108,11 @@ async def get_buscar_ficha_criminal(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.get("/", tags=["Requisição do Aplicativo"])
-def dados(user=Depends(validate_token)):
-    return {"msg": "Token válido", "usuario": user.get("preferred_username")}
-
 
 # CRUD 
 
 
-@app.post("/create-identidade/", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
+@app.post("/create-identidade/", dependencies=[Depends(get_auth)], tags=["CRUD"])
 
 async def get_create_identidade(
     db: ssp_criminosos_db_dependency,
@@ -138,7 +139,7 @@ async def get_create_identidade(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.delete("/delete-identidade/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
+@app.delete("/delete-identidade/{cpf}", dependencies=[Depends(get_auth)], tags=["CRUD"])
 async def get_delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
     try:
         return delete_identidade(cpf, db)
@@ -147,7 +148,7 @@ async def get_delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
     
 
 
-@app.put("/update-ficha/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
+@app.put("/update-ficha/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
 async def get_update_ficha(
     db: ssp_criminosos_db_dependency,
     cpf: str,
@@ -163,7 +164,7 @@ async def get_update_ficha(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.post("/create-crime/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
+@app.post("/create-crime/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
 async def get_create_crime(
     db: ssp_criminosos_db_dependency,
     cpf: str,
