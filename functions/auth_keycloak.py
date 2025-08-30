@@ -7,8 +7,9 @@ import requests
 
 bearer_scheme = HTTPBearer()
 
-KEYCLOAK_URL = "http://localhost:8090/realms/interno/protocol/openid-connect"
+KEYCLOAK_URL = "http://sso.ajvale.com.br/realms/interno/protocol/openid-connect"
 CLIENT_ID = "visionapp"
+REDIRECT_URI = "http://localhost:8000/callback"   
 
 jwks_data = requests.get(f"{KEYCLOAK_URL}/certs").json()
 
