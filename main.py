@@ -11,23 +11,19 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 
 from config.database import SspUsuarioBase, SspCriminososBase
-from functions.auth_crud import verify_crud_api_key
+
 
 from functions.auth_keycloak import get_auth
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
-# from firebase_admin import credentials, initialize_app
+
 
 from dotenv import load_dotenv
 
-# from functions.auth_utils import verify_token
-
-
-# from functions.requests.auth_with_firebase import auth_with_firebase
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 
 from functions.requests.buscar_similaridade import buscar_similaridade
-# from functions.requests.perfil_usuario import perfil_usuario
+
 
 from functions.crud.create_identidade import create_identidade
 from functions.crud.delete_identidade import delete_identidade
