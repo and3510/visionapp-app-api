@@ -8,6 +8,7 @@ import face_recognition
 from fastapi.responses import JSONResponse
 import numpy as np
 from config.database import SspCriminososBase, SspUsuarioBase
+from functions.auth_keycloak import get_auth
 from functions.clahe import aplicar_clahe
 from functions.dependencias import get_ssp_criminosos_db, get_ssp_usuario_db
 import config.models as models
@@ -32,8 +33,14 @@ def buscar_similaridade(
     matricula: str,
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    user=Depends(get_auth)
 ):
+    payload = user["payload"]
+    matricula = payload.get("matricula")  # do token
+    user_id = payload.get("sub")          # id único do token
+    
+    
     temp_file = f"temp_{file.filename}"
     with open(temp_file, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -51,13 +58,13 @@ def buscar_similaridade(
     if not identidades:
         raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
 
-    usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    # usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
     similaridades = []
     for identidade in identidades:
-        vetor_facial_banco = np.array(json.loads(identidade.vetor_facial))
+        vetor_facial_banco = np.array(identidade.vetor_facial)
         distancia = np.linalg.norm(vetor_facial - vetor_facial_banco)
         foto_url_result = proxy_object_by_cpf(identidade.cpf)
         foto_url = foto_url_result["url"] if isinstance(foto_url_result, dict) and "url" in foto_url_result else None
@@ -81,8 +88,8 @@ def buscar_similaridade(
 
     log = models.Log_Resultado_Reconhecimento(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
-        matricula=usuario.matricula,
-        id_usuario=usuario.id_usuario,
+        matricula=matricula,
+        id_usuario=user_id,
         distancia=str(round(similaridades[0]["distancia"], 4)),
         cpf=similaridades[0]["cpf"] if similaridades else None,
         id_ficha=None,  # Será preenchido abaixo, se existir

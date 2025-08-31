@@ -1,6 +1,6 @@
 from sqlalchemy import TIMESTAMP, Column, Date, Integer, String, Boolean, Text
 from config.database import SspCriminososBase, SspUsuarioBase
-
+from pgvector.sqlalchemy import Vector 
 
 class Usuario(SspUsuarioBase):
 
@@ -65,10 +65,10 @@ class Identidade(SspCriminososBase):
 
     cpf = Column(String(14), primary_key=True, index=True)
     nome = Column(String(150), nullable=False)
-    nome_mae = Column(String(150))
-    nome_pai = Column(String(150))
+    nome_mae = Column(String(150), nullable=False)
+    nome_pai = Column(String(150), nullable=False)
     data_nascimento = Column(String(20), nullable=False)
-    vetor_facial = Column(String(180), nullable=False)
+    vetor_facial = Column(Vector(128), nullable=False)  # coerente com VECTOR(128)
     url_facial = Column(String(255), nullable=False)
     gemeo = Column(Boolean, nullable=False, default=False)
 
@@ -84,9 +84,9 @@ class FichaCriminal(SspCriminososBase):
 class Crime(SspCriminososBase):
     __tablename__ = "crime"
 
-    id_crime = Column(Integer, primary_key=True, index=True)
+    id_crime = Column(String(30), primary_key=True, index=True)
     id_ficha = Column(String(30), nullable=False)
-    nome_crime = Column(Date, nullable=False)
+    nome_crime = Column(String(150), nullable=False)
     artigo = Column(String(100), nullable=False)
     descricao = Column(Text, nullable=False)
     data_ocorrencia = Column(String(20), nullable=False)
