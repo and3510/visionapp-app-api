@@ -77,7 +77,7 @@ async def get_buscar_similaridade(
 ):
     try:
 
-        return buscar_similaridade(matricula, ficha_db, user_db, file)
+        return buscar_similaridade(matricula, ficha_db, user_db, file, user)
 
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
@@ -99,7 +99,7 @@ async def get_buscar_ficha_criminal(
     user=Depends(get_auth)
 ):
     try:
-        return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db)
+        return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db, user)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 

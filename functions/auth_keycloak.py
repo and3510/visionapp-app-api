@@ -56,5 +56,6 @@ def get_auth(token_oauth: str = Depends(oauth2_interno),
         payload = decode_token(token_oauth)
         return {"type": "oauth", "token": token_oauth, "payload": payload}
     if api_key:
-        return {"type": "api_key", "token": api_key}
+        payload = decode_token(api_key)
+        return {"type": "api_key", "token": api_key, "payload": payload}
     raise HTTPException(status_code=401, detail="Não autenticado")
