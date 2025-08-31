@@ -8,18 +8,17 @@ services:
       - "traefik.enable=true"
 
       # Router HTTPS
-      - "traefik.http.routers.facecheck_api.rule=Host(`fastapi.ajvale.com.br`)"
+      - "traefik.http.routers.facecheck_api.rule=Host(`${FASTAPI_HOST}`)"
       - "traefik.http.routers.facecheck_api.entrypoints=websecure"
-      - "traefik.http.routers.facecheck_api.tls.certresolver=myresolver"
+      - "traefik.http.routers.facecheck_api.tls.certresolver=${CERT_RESOLVER}"
 
       # Router HTTP → HTTPS
-      - "traefik.http.routers.fastcheck_api-http.rule=Host(`fastapi.ajvale.com.br`)"
+      - "traefik.http.routers.facecheck_api-http.rule=Host(`${FASTAPI_HOST}`)"
       - "traefik.http.routers.facecheck_api-http.entrypoints=web"
       - "traefik.http.routers.facecheck_api-http.middlewares=https-redirect"
 
       # Middleware de redirecionamento
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-
 
     working_dir: /app
     command: uvicorn main:app --host 0.0.0.0 --port 8000
@@ -27,8 +26,6 @@ services:
       - PORT=8000
     ports:
       - "8000:8000"
-   
-
     volumes:
       - ./.env:/app/.env
       - ./firebase_config.json:/app/firebase_config.json
@@ -41,7 +38,7 @@ services:
     container_name: bd_criminosos
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: and3872#
+      POSTGRES_PASSWORD: ${PG_CRIMINOSOS_PASSWORD}
       POSTGRES_DB: ssp_criminosos
     ports:
       - "5432:5432"
@@ -56,10 +53,10 @@ services:
     container_name: bd_usuarios
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: and3872#
+      POSTGRES_PASSWORD: ${PG_USUARIOS_PASSWORD}
       POSTGRES_DB: ssp_usuario
     ports:
-      - "5433:5432"  # Evita conflito de porta com o primeiro PostgreSQL
+      - "5433:5432"
     volumes:
       - pgdata_usuarios:/var/lib/postgresql/data
     networks:
@@ -72,39 +69,36 @@ services:
     labels:
       - "traefik.enable=true"
 
-      # --- MinIO API (porta 9000) ---
-      - "traefik.http.routers.minio.rule=Host(`minio.ajvale.com.br`)"
+      # --- MinIO API (9000) ---
+      - "traefik.http.routers.minio.rule=Host(`${MINIO_HOST}`)"
       - "traefik.http.routers.minio.entrypoints=websecure"
-      - "traefik.http.routers.minio.tls.certresolver=myresolver"
+      - "traefik.http.routers.minio.tls.certresolver=${CERT_RESOLVER}"
       - "traefik.http.routers.minio.service=minio-svc"
       - "traefik.http.services.minio-svc.loadbalancer.server.port=9000"
 
-      # Redirecionamento HTTP → HTTPS
-      - "traefik.http.routers.minio-http.rule=Host(`minio.ajvale.com.br`)"
+      - "traefik.http.routers.minio-http.rule=Host(`${MINIO_HOST}`)"
       - "traefik.http.routers.minio-http.entrypoints=web"
       - "traefik.http.routers.minio-http.middlewares=https-redirect"
       - "traefik.http.routers.minio-http.service=minio-svc"
 
-      # --- MinIO Console (porta 9001) ---
-      - "traefik.http.routers.minio-console.rule=Host(`minio-console.ajvale.com.br`)"
+      # --- MinIO Console (9001) ---
+      - "traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_HOST}`)"
       - "traefik.http.routers.minio-console.entrypoints=websecure"
-      - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
+      - "traefik.http.routers.minio-console.tls.certresolver=${CERT_RESOLVER}"
       - "traefik.http.routers.minio-console.service=minio-console-svc"
       - "traefik.http.services.minio-console-svc.loadbalancer.server.port=9001"
 
-      # Redirecionamento HTTP → HTTPS (console)
-      - "traefik.http.routers.minio-console-http.rule=Host(`minio-console.ajvale.com.br`)"
+      - "traefik.http.routers.minio-console-http.rule=Host(`${MINIO_CONSOLE_HOST}`)"
       - "traefik.http.routers.minio-console-http.entrypoints=web"
       - "traefik.http.routers.minio-console-http.middlewares=https-redirect"
       - "traefik.http.routers.minio-console-http.service=minio-console-svc"
 
-      # Middleware de redirecionamento
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
 
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     networks:
@@ -116,8 +110,6 @@ volumes:
   pgdata_criminosos:
   minio-data:
 
-
 networks:
   web:
     external: true
-
