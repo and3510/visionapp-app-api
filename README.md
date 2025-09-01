@@ -7,8 +7,8 @@
 ![Static Badge](https://img.shields.io/badge/minio-purple?style=for-the-badge&logo=minio&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/postgresql-blue?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/docker-blue?style=for-the-badge&logo=docker&logoColor=white)
-![Static Badge](https://img.shields.io/badge/firebase-red?style=for-the-badge&logo=firebase&logoColor=yellow)
-![Static Badge](https://img.shields.io/badge/v1.1.0-blue?style=flat)
+![Static Badge](https://img.shields.io/badge/keycloak-gray?style=for-the-badge&logo=keycloak&logoColor=blue)
+![Static Badge](https://img.shields.io/badge/v1.2.0-blue?style=flat)
 
 
   
@@ -80,7 +80,7 @@ Este projeto consiste em uma API desenvolvida com FastAPI para reconhecimento fa
 
 - Python
 - JWT
-- Firebase
+- Keycloak
 - Docker
 - Postgresql
 - Minio
@@ -97,50 +97,25 @@ face_recognition – Geração de vetores faciais (descritores de 128 dimensões
 
 SQLAlchemy – ORM para integração com banco de dados relacional.
 
-FireAuth - Para Autentição com FireBase
+Keycloak - Para Autentição.
 
 ## Fluxo do Software
 
 <div align="center"> 
 
 
-![Imagem do Diagrama da Arquitetura do Sistema](images/latest.drawio.png)
-<p> Arquitetura do Sistema </p>
-
 </div>
 
-De acordo com diagrama da imagem, a autenticação é realizada via Firebase, garantindo o acesso seguro dos usuários por meio de tokens JWT. A API desenvolvida com FastAPI gerencia o recebimento de fotos, CPF e a autenticação, realizando o reconhecimento facial e a consulta de informações em bancos PostgreSQL e no serviço de armazenamento MinIO. O sistema permite identificar usuários ou suspeitos a partir da análise facial, cruzando dados com os cadastros existentes. Por fim, os resultados são retornados à aplicação móvel, completando o fluxo de verificação e resposta.
+De acordo com diagrama da imagem, a autenticação é realizada via keycloak, garantindo o acesso seguro dos usuários por meio de tokens JWT. A API desenvolvida com FastAPI gerencia o recebimento de fotos, CPF e a autenticação, realizando o reconhecimento facial e a consulta de informações em bancos PostgreSQL e no serviço de armazenamento MinIO. O sistema permite identificar usuários ou suspeitos a partir da análise facial, cruzando dados com os cadastros existentes. Por fim, os resultados são retornados à aplicação móvel, completando o fluxo de verificação e resposta.
 
 
 ## Tabelas
 
-<div align="center"> 
-
-<table>
-  <tr>
-    <td><img src="images/ssp_usuario - public.png" width="600"/></td>
-    <td><img src="images/ssp_criminosos - public.png" width="600"/></td>
-  </tr>
-</table>
-<p> Tabelas dos Bancos </p>
-
-
-
-</div>
 
 
 
 ## Dificuldades
 
-### Configuração
-
-Em diversos momentos, ocorreram erros do tipo *Internal Server Error 500*, causados pelo envio de dados incorretos ao banco de dados. Também enfrentamos problemas relacionados à privacidade ao utilizar o MinIO. Para mitigar esse risco, optamos por tornar o repositório de imagens privado. Assim, para acessar uma imagem via URL, utilizamos o CPF como chave de verificação. Caso exista uma imagem associada ao mesmo CPF, é gerado um link temporário com validade de 6 minutos.
-
-Além disso, foi necessário modificar repetidamente as colunas das tabelas, devido a mudanças nos requisitos ao longo do desenvolvimento. Isso evidenciou a ausência de um planejamento adequado na fase inicial da modelagem do banco de dados.
-
-### Reconhecimento Facial
-
-Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos critérios mínimos de qualidade estabelecidos: o rosto precisava estar centralizado, sem obstruções e bem iluminado. Como resultado, apenas 48 imagens foram consideradas adequadas e armazenadas no banco para uso no reconhecimento facial.
 
 
 ## Ambiente de Testes
@@ -156,134 +131,7 @@ Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos
 
 ## Resultados
 
-<div align="center"> 
-
-![Imagem da Interface do FastApi](images/interface_FastApi.png)
-<p> Interface do FastApi para realização de Requisições </p>
-
-</div>
-
-A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão listadas as principais requisições que a aplicação móvel pode realizar. Entre elas, destaca-se o endpoint /auth/firebase, responsável pela autenticação via Firebase, e o ´/buscar-similaridade-foto´, que permite o envio de uma imagem para análise de similaridade facial. Além disso, o endpoint /buscar-ficha-criminal/{cpf} possibilita a consulta da ficha criminal a partir do CPF, enquanto o /usuario/perfil recupera os dados do perfil do usuário autenticado. Todas as rotas exigem autenticação, garantindo segurança nas interações entre o app e o servidor.
-
-
-### Reconhecimento Facial
-
-#### **Table I**
-
-<div align="center"> 
-
-**Taxa de Sucesso e Tempo Médio por Requisição**
-
-| Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
-| ---------- | --------------- | --------------- |
-| 1 segundo  | 97,97%          | 1,629           |
-| 2 segundos | 97,97%          | 1,823           |
-| 5 segundos | 97,97%          | 1,864           |
-
-
-</div>
-
-
----
-
-
-#### **Table II**
-
-
-<div align="center"> 
-
-
-**Classificações de Similaridade – Homens (%)**
-
-| Tom de Pele | Intervalo | Confiante | Ambíguo | Nenhuma Similaridade Forte |
-| ----------- | --------- | --------- | ------- | -------------------------- |
-| Brancos     | 1 s       | 75,25     | 23,38   | 1,38                       |
-|             | 2 s       | 73,13     | 25,50   | 1,38                       |
-|             | 5 s       | 75,00     | 24,25   | 0,75                       |
-| Pardos      | 1 s       | 75,00     | 23,63   | 1,38                       |
-|             | 2 s       | 73,00     | 25,63   | 1,38                       |
-|             | 5 s       | 75,25     | 23,38   | 1,38                       |
-| Negros      | 1 s       | 48,50     | 44,75   | 6,75                       |
-|             | 2 s       | 49,38     | 43,88   | 6,75                       |
-|             | 5 s       | 47,25     | 46,00   | 6,75                       |
-
-
-</div>
-
-
-
----
-
-#### **Table III**
-
-
-<div align="center"> 
-
-
-**Classificações de Similaridade – Mulheres (%)**
-
-| Tom de Pele | Intervalo | Confiante | Ambíguo | Nenhuma Similaridade Forte |
-| ----------- | --------- | --------- | ------- | -------------------------- |
-| Brancos     | 1 s       | 46,75     | 51,88   | 1,38                       |
-|             | 2 s       | 46,75     | 51,88   | 1,38                       |
-|             | 5 s       | 46,25     | 52,38   | 1,38                       |
-| Pardos      | 1 s       | 45,13     | 53,88   | 1,00                       |
-|             | 2 s       | 45,13     | 53,88   | 1,00                       |
-|             | 5 s       | 45,13     | 53,88   | 1,00                       |
-| Negros      | 1 s       | 42,38     | 55,63   | 1,99                       |
-|             | 2 s       | 42,38     | 55,63   | 1,99                       |
-|             | 5 s       | 42,38     | 55,63   | 1,99                       |
-
-
-</div>
-
-
----
-
-#### **Table IV**
-
-<div align="center"> 
-
-
-**Matriz de Confusão Geral**
-
-| Categoria                | Homens | Mulheres | Total |
-| ------------------------ | ------ | -------- | ----- |
-| Verdadeiro Positivo (VP) | 450    | 329      | 779   |
-| Falso Negativo (FN)      | 198    | 319      | 517   |
-| Verdadeiro Negativo (VN) | 129    | 93       | 222   |
-| Falso Positivo (FP)      | 0      | 0        | 0     |
-
-
-</div>
-
-
----
-
-#### **Table V**
-
-
-<div align="center"> 
-
-
-**Resultados do Teste com Gêmeos**
-
-| Classificação              | Gêmeo A | Gêmeo B |
-| -------------------------- | ------- | ------- |
-| Confiante                  | 3       | 0       |
-| Ambíguo                    | 9       | 12      |
-| Nenhuma Similaridade Forte | 0       | 0       |
-
-</div>
-
 
 ## Conclusao
 
-O projeto VisionApp - API demonstrou ser uma solução robusta e eficiente para reconhecimento facial voltado ao cadastro e monitoramento de indivíduos com registros criminais. Utilizando um ecossistema tecnológico moderno — incluindo FastAPI, PostgreSQL com vetores, Firebase, Docker, MinIO e bibliotecas como Dlib e face_recognition —, a aplicação foi capaz de realizar autenticação segura, vetorização facial e consultas precisas de ficha criminal.
 
-Apesar das dificuldades enfrentadas durante o desenvolvimento, como erros internos do servidor e a necessidade de imagens faciais com qualidade mínima, a equipe conseguiu superar os desafios e atingir uma taxa de sucesso elevada, especialmente nos testes de reconhecimento facial com tempos médios de resposta inferiores a 2 segundos.
-
-Os testes realizados demonstraram desempenho satisfatório, mesmo em casos de ambiguidade como gêmeos idênticos, e revelaram a importância de considerar variações de tonalidade de pele na precisão dos algoritmos. A ausência de falsos positivos evidencia o compromisso com a segurança e a confiabilidade do sistema.
-
-
-Com isso, o VisionApp se consolida como um bom protótipo para o estudo do modelo e serve como base para aprimoramentos e desenvolvimento de novos modelos voltados a aplicações de biometria e segurança pública, unindo desempenho técnico, boas práticas de desenvolvimento e preocupação ética com o tratamento de dados sensíveis.
