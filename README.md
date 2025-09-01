@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=FINALIZADO&color=GREEN&style=for-the-badge)
+![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=EM%20DESENVOLVIMENTO&color=GREEN&style=for-the-badge)
 ![Static Badge](https://img.shields.io/badge/python-gray?style=for-the-badge&logo=python&logoColor=yellow)
 ![Static Badge](https://img.shields.io/badge/minio-purple?style=for-the-badge&logo=minio&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/postgresql-blue?style=for-the-badge&logo=postgresql&logoColor=white)
@@ -36,7 +36,8 @@
 - Beatriz Barreto - [whosbea](https://github.com/whosbea)
 - Cristovam Paulo - [cristovam10000](https://github.com/cristovam10000)
 - Gustavo do Vale - [gustavodovale](https://github.com/gustavodovale)
-- Lucas Cesar
+- Lucas Cesar - [lucascesar1107](https://github.com/lucascesar1107)
+- Nicolas Leao - [Furvos](https://github.com/Furvos)
 
 ## Descrição
 
