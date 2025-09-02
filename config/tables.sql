@@ -1,37 +1,7 @@
 -- Banco de Dados SSP-USUARIO
 
 
-
--- Tabela: usuario
-CREATE TABLE usuario (
-    matricula VARCHAR(10) PRIMARY KEY,
-    id_usuario VARCHAR(100),
-    nome VARCHAR(150),
-    nome_social VARCHAR(150),
-    nome_mae VARCHAR(150),
-    nome_pai VARCHAR(150),
-    data_nascimento VARCHAR(20),
-    cpf VARCHAR(14) unique,
-    telefone VARCHAR(20),
-    sexo CHAR(5),  -- Ex: 'M', 'F', 'O'
-    nacionalidade VARCHAR(100),
-    naturalidade VARCHAR(100),
-    tipo_sanguineo VARCHAR(5),
-    cargo VARCHAR(100),
-    nivel_classe VARCHAR(50),
-    senha TEXT,
-    data_criacao_conta TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
-CREATE TABLE log_entrada (
-    id_entrada VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
-    matricula VARCHAR(10) REFERENCES usuario(matricula),
-    id_usuario VARCHAR(100),
-    cpf VARCHAR(14) unique,
-    data_entrada_conta TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
+-- Tabela: Log_resultado_reconhecimento
 
 CREATE TABLE log_resultado_reconhecimento (
     id_resultado_reconhecimento VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -45,6 +15,7 @@ CREATE TABLE log_resultado_reconhecimento (
     url_facial_referencia VARCHAR(200)
 );
 
+-- Tabela: Log_resultado_cpf
 
 CREATE TABLE log_resultado_cpf (
     id_resultado_cpf VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
