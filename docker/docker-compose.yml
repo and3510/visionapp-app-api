@@ -2,20 +2,20 @@ version: "3.9"
 
 services:
   facecheck_api:
-    image: and3510/visionapp:v2.2
-    container_name: facecheck_api
+    image: and3510/visionapp:v2.6.1-develop
+    container_name: api_visionapp
     labels:
       - "traefik.enable=true"
 
       # Router HTTPS
-      - "traefik.http.routers.facecheck_api.rule=Host(`${FASTAPI_HOST}`)"
-      - "traefik.http.routers.facecheck_api.entrypoints=websecure"
-      - "traefik.http.routers.facecheck_api.tls.certresolver=${CERT_RESOLVER}"
+      - "traefik.http.routers.api_visionapp.rule=Host(`${FASTAPI_HOST}`)"
+      - "traefik.http.routers.api_visionapp.entrypoints=websecure"
+      - "traefik.http.routers.api_visionapp.tls.certresolver=${CERT_RESOLVER}"
 
       # Router HTTP → HTTPS
-      - "traefik.http.routers.facecheck_api-http.rule=Host(`${FASTAPI_HOST}`)"
-      - "traefik.http.routers.facecheck_api-http.entrypoints=web"
-      - "traefik.http.routers.facecheck_api-http.middlewares=https-redirect"
+      - "traefik.http.routers.api_visionapp-http.rule=Host(`${FASTAPI_HOST}`)"
+      - "traefik.http.routers.api_visionapp-http.entrypoints=web"
+      - "traefik.http.routers.api_visionapp-http.middlewares=https-redirect"
 
       # Middleware de redirecionamento
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
