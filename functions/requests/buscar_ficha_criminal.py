@@ -23,7 +23,7 @@ ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
-def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency, user: dict = Depends(get_auth)):
+def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency, user: dict = Depends(get_auth)):
     
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
 

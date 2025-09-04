@@ -30,7 +30,6 @@ SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
 def buscar_similaridade(
-    matricula: str,
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
     file: UploadFile = File(...),

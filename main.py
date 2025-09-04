@@ -71,22 +71,16 @@ async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
     file: UploadFile = File(...),
-    matricula: str = Query(...),
     user=Depends(get_auth),   # ← aqui você pega o payload do token
 ):
     try:
 
-        return buscar_similaridade(matricula, ficha_db, user_db, file, user)
+        return buscar_similaridade(ficha_db, user_db, file, user)
 
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-@app.get("/me", tags=["Requisição do Aplicativo"])
-def me_interno(token: dict = Depends(get_auth)):
-    return {
-        "token": token["token"],
-        "informacoes": token.get("payload")  # Aqui você já pega o payload JWT
-    }
+
 
 
 @app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
@@ -94,11 +88,10 @@ async def get_buscar_ficha_criminal(
     cpf: str, 
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
-    matricula: str = Query(...),
     user=Depends(get_auth)
 ):
     try:
-        return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db, user)
+        return buscar_ficha_criminal(cpf,ficha_db, user_db, user)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
