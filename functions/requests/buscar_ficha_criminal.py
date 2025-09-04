@@ -3,6 +3,7 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 from config.database import SspCriminososBase, SspUsuarioBase
+from functions.auth_keycloak import get_auth
 from functions.dependencias import get_ssp_criminosos_db, get_ssp_usuario_db
 import config.models as models
 from config.database import ssp_criminosos_engine, ssp_usuario_engine
@@ -22,13 +23,9 @@ ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
-def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency):
+def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency, user: dict = Depends(get_auth)):
     
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-
-
-    # if not identidade:
-    #     raise HTTPException(status_code=404, detail="Identidade não encontrada para o CPF fornecido.")
 
 
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
@@ -37,16 +34,21 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
     if ficha_criminal:
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
 
-    usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    # usuario = user_db.query(models.Usuario).filter("333333333" == matricula).first()
+
+    # dados do token
+    payload = user["payload"]
+    matricula = payload.get("matricula")  # precisa estar como claim no token
+    user_id = payload.get("sub")          # ou outro identificador único
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
     log_resultado_cpf = models.Log_Resultado_Cpf(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
-        matricula=usuario.matricula if usuario else None,
+        matricula=matricula,
         data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
         cpf=cpf,
-        id_usuario=usuario.id_usuario if usuario else None,
+        id_usuario=user_id,
         id_ficha=ficha_criminal.id_ficha if ficha_criminal else None
     )
     user_db.add(log_resultado_cpf)
@@ -67,7 +69,7 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
         "gemeo": identidade.gemeo,
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha if ficha_criminal else None,
-            "vulgo": ficha_criminal.vulgo,
+            "vulgo": ficha_criminal.vulgo if ficha_criminal else None,
         },
         "crimes": [
             {

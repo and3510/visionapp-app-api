@@ -3,5 +3,10 @@
 __pycache__/
 
 venv
+.venv
 
 firebase_config.json
+
+
+/docker-compose.yml
+/Dockerfile
