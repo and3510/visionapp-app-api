@@ -1,8 +1,8 @@
 version: "3.9"
 
 services:
-  facecheck_api:
-    image: and3510/visionapp:v2.6.1-develop
+  api_visionapp:
+    image: and3510/visionapp:v2.6.3-develop
     container_name: api_visionapp
     labels:
       - "traefik.enable=true"
