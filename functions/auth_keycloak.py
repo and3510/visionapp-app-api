@@ -1,90 +1,71 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, OAuth2AuthorizationCodeBearer
-from jose import jwt
+from jose import jwt, JWTError
 import requests
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
 
 app = FastAPI()
 
+# Esquemas de autenticação
 bearer_scheme = HTTPBearer()
 oauth2_interno = OAuth2AuthorizationCodeBearer(
     authorizationUrl="https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/auth",
     tokenUrl="https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/token",
 )
 
+# JWKS do Keycloak
 KEYCLOAK_JWKS_URL = "https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/certs"
 JWKS = requests.get(KEYCLOAK_JWKS_URL).json()
 
 
-def get_public_key(token: str):
-    # Pega o kid do token
-    headers = jwt.get_unverified_header(token)
-    kid = headers.get("kid")
-    if not kid:
-        raise HTTPException(status_code=401, detail="Token sem 'kid'")
-
-    # Procura a chave correspondente no JWKS
-    key_dict = next((k for k in JWKS["keys"] if k["kid"] == kid and k["use"] == "sig"), None)
-    if not key_dict:
-        raise HTTPException(status_code=401, detail="Chave pública não encontrada no JWKS")
-
-    # Converte a chave RSA para objeto e depois para PEM
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import padding
-    from cryptography.hazmat.primitives import hashes
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    import base64
-
-    # Monta a chave pública RSA a partir de n/e
-    n_int = int.from_bytes(base64.urlsafe_b64decode(key_dict["n"] + "=="), "big")
-    e_int = int.from_bytes(base64.urlsafe_b64decode(key_dict["e"] + "=="), "big")
-    public_numbers = rsa.RSAPublicNumbers(e_int, n_int)
-    public_key_obj = public_numbers.public_key(default_backend())
-
-    # Retorna PEM como string
-    pem = public_key_obj.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    ).decode("utf-8")
-    return pem
-
-
 def decode_token(token: str):
-    try:
-        public_key = get_public_key(token)
-        payload = jwt.decode(
-            token,
-            public_key,
-            algorithms=["RS256"],
-            options={"verify_aud": False}
-        )
+    """
+    Valida e decodifica o JWT usando as chaves do JWKS.
+    Tenta cada chave até achar uma que funcione.
+    Também verifica manualmente o 'audience'.
+    """
+    last_error = None
+    for key_dict in JWKS["keys"]:
+        try:
+            # Converte a chave para JSON string
+            jwk_json = key_dict
 
-        # valida audiences manualmente
-        allowed_audiences = {"visionapp-interno", "visionapp"}
-        token_aud = payload.get("aud")
-        if isinstance(token_aud, str):
-            token_aud = {token_aud}
-        elif isinstance(token_aud, list):
-            token_aud = set(token_aud)
-        else:
-            raise Exception("Audience inválido no token")
+            payload = jwt.decode(
+                token,
+                jwk_json,
+                algorithms=["RS256"],
+                options={"verify_aud": False}  # validamos audience manualmente
+            )
 
-        if not (token_aud & allowed_audiences):
-            raise Exception("Audience não permitido")
+            # valida audiences permitidos
+            allowed_audiences = {"visionapp-interno", "visionapp"}
+            token_aud = payload.get("aud")
+            if isinstance(token_aud, str):
+                token_aud = {token_aud}
+            elif isinstance(token_aud, list):
+                token_aud = set(token_aud)
+            else:
+                raise Exception("Audience inválido no token")
 
-        return payload
+            if not (token_aud & allowed_audiences):
+                raise Exception("Audience não permitido")
 
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")
+            return payload
+
+        except jwt.JWTError as e:
+            last_error = e
+            continue
+
+    raise HTTPException(status_code=401, detail=f"Token inválido: {last_error}")
 
 
-def get_auth(token_oauth: str = Depends(oauth2_interno),
-             api_key: str = Depends(bearer_scheme)):
+
+def get_auth(
+    token_oauth: str = Depends(oauth2_interno),
+    api_key: str = Depends(bearer_scheme)
+):
+    """
+    Autentica requisições usando OAuth2 ou API Key (JWT no header Authorization).
+    """
     if token_oauth:
         payload = decode_token(token_oauth)
         return {"type": "oauth", "token": token_oauth, "payload": payload}
@@ -92,5 +73,3 @@ def get_auth(token_oauth: str = Depends(oauth2_interno),
         payload = decode_token(api_key.credentials)
         return {"type": "api_key", "token": api_key.credentials, "payload": payload}
     raise HTTPException(status_code=401, detail="Não autenticado")
-
-
