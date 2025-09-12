@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, OAuth2AuthorizationCodeBearer
+import httpx
 from jose import jwt, JWTError
 import requests
 
-app = FastAPI()
 
 # Esquemas de autenticação
 bearer_scheme = HTTPBearer()
@@ -58,7 +58,6 @@ def decode_token(token: str):
     raise HTTPException(status_code=401, detail=f"Token inválido: {last_error}")
 
 
-
 def get_auth(
     token_oauth: str = Depends(oauth2_interno),
     api_key: str = Depends(bearer_scheme)
@@ -73,3 +72,16 @@ def get_auth(
         payload = decode_token(api_key.credentials)
         return {"type": "api_key", "token": api_key.credentials, "payload": payload}
     raise HTTPException(status_code=401, detail="Não autenticado")
+
+
+async def fetch_keycloak_userinfo(token: str):
+    """
+    Busca informações do usuário autenticado diretamente do Keycloak.
+    """
+    url = "https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/userinfo"
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Erro ao buscar userinfo")
+        return response.json()

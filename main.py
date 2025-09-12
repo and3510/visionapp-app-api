@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from config.database import SspUsuarioBase, SspCriminososBase
 
 
-from functions.auth_keycloak import get_auth
+from functions.auth_keycloak import fetch_keycloak_userinfo, get_auth
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
@@ -29,8 +29,6 @@ from functions.crud.delete_identidade import delete_identidade
 from functions.crud.update_ficha import update_ficha
 from functions.crud.create_crime import CrimeStatus, create_crime
 
-
-from fastapi import Query
 
 
 
@@ -94,6 +92,15 @@ async def get_buscar_ficha_criminal(
         return buscar_ficha_criminal(cpf,ficha_db, user_db, user)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+    
+
+@app.get("/userinfo", tags=["Requisição do Aplicativo"])
+async def get_userinfo(user=Depends(get_auth)):
+    """
+    Retorna informações do usuário autenticado diretamente do Keycloak.
+    """
+    token = user["token"]
+    return await fetch_keycloak_userinfo(token)
 
 
 
