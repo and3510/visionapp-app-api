@@ -12,22 +12,23 @@ from sqlalchemy.orm import Session
 from config.database import SspUsuarioBase, SspCriminososBase
 
 
+from config.models import FichaCriminalRequest
 from functions.auth_keycloak import fetch_keycloak_userinfo, get_auth
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
 
-
+# from pydantic import BaseModel
 from dotenv import load_dotenv
-
+from fastapi import Form
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 
 from functions.requests.buscar_similaridade import buscar_similaridade
 
 
-from functions.crud.create_identidade import create_identidade
-from functions.crud.delete_identidade import delete_identidade
-from functions.crud.update_ficha import update_ficha
-from functions.crud.create_crime import CrimeStatus, create_crime
+# from functions.crud.create_identidade import create_identidade
+# from functions.crud.delete_identidade import delete_identidade
+# from functions.crud.update_ficha import update_ficha
+# from functions.crud.create_crime import CrimeStatus, create_crime
 
 
 
@@ -60,7 +61,6 @@ SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 # ---------- Rotas -----------
 
-
 @app.post(
     "/buscar-similaridade-foto/", 
     tags=["Requisição do Aplicativo"]
@@ -68,33 +68,33 @@ SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
+    matricula: str = Form(...),
     file: UploadFile = File(...),
-    user=Depends(get_auth),   # ← aqui você pega o payload do token
+    user=Depends(get_auth),
 ):
     try:
-
-        return buscar_similaridade(ficha_db, user_db, file, user)
-
+        return buscar_similaridade(ficha_db, user_db,user, matricula, file, )
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
+
+@app.post("/buscar-ficha-criminal/", tags=["Requisição do Aplicativo"])
 async def get_buscar_ficha_criminal(
-    cpf: str, 
+    request: FichaCriminalRequest,
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
     user=Depends(get_auth)
 ):
     try:
-        return buscar_ficha_criminal(cpf,ficha_db, user_db, user)
+        return buscar_ficha_criminal(request.cpf, ficha_db, user_db, user, matricula=request.matricula)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 
-@app.get("/userinfo", tags=["Requisição do Aplicativo"])
+@app.get("/informacoes-perfil/", tags=["Requisição do Aplicativo"])
 async def get_userinfo(user=Depends(get_auth)):
     """
     Retorna informações do usuário autenticado diretamente do Keycloak.

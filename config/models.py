@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlalchemy import Column, String, Boolean, Text
 from config.database import SspCriminososBase, SspUsuarioBase
 from pgvector.sqlalchemy import Vector 
@@ -62,3 +63,6 @@ class Crime(SspCriminososBase):
     estado = Column(String(2), nullable=False)
     status = Column(String(20), nullable=False)
 
+class FichaCriminalRequest(BaseModel):
+    cpf: str
+    matricula: str

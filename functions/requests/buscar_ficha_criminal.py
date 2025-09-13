@@ -23,29 +23,29 @@ ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
-def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency, user: dict = Depends(get_auth)):
-    
+def buscar_ficha_criminal(
+    cpf: str,
+    ficha_db: ssp_criminosos_db_dependency,
+    user_db: ssp_usuario_db_dependency,
+    user: dict,
+    matricula: str = None
+):
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-
-
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
     crimes = []
 
     if ficha_criminal:
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
 
-    # usuario = user_db.query(models.Usuario).filter("333333333" == matricula).first()
-
     # dados do token
     payload = user["payload"]
-    matricula = payload.get("matricula")  # precisa estar como claim no token
-    user_id = payload.get("sub")          # ou outro identificador único
+    user_id = payload.get("sub")  # ou outro identificador único
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
     log_resultado_cpf = models.Log_Resultado_Cpf(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
-        matricula=matricula,
+        matricula=matricula,  # ← agora vem do parâmetro
         data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
         cpf=cpf,
         id_usuario=user_id,
@@ -58,7 +58,6 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user
     foto_url_result = proxy_object_by_cpf(cpf)
     foto_url = foto_url_result["url"] if isinstance(foto_url_result, dict) and "url" in foto_url_result else None
 
-    # Construir a resposta
     resposta = {
         "cpf": identidade.cpf,
         "nome": identidade.nome,
@@ -87,4 +86,3 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user
     }
 
     return resposta
-
