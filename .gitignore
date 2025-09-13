@@ -11,3 +11,5 @@ firebase_config.json
 
 /docker-compose.yml
 /Dockerfile
+
+.sonarlint/
