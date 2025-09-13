@@ -107,83 +107,83 @@ async def get_userinfo(user=Depends(get_auth)):
 # CRUD 
 
 
-@app.post("/create-identidade/", dependencies=[Depends(get_auth)], tags=["CRUD"])
+# @app.post("/create-identidade/", dependencies=[Depends(get_auth)], tags=["CRUD"])
 
-async def get_create_identidade(
-    db: ssp_criminosos_db_dependency,
-    cpf: str,
-    nome: str,
-    nome_mae: str,
-    nome_pai: str,
-    data_nascimento: str,
-    gemeo: bool = False,
-    file: UploadFile = File(...)
-):
-    try:
-        return create_identidade(
-            db,
-            cpf,
-            nome,
-            nome_mae,
-            nome_pai,
-            data_nascimento,
-            gemeo,
-            file
-        )
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+# async def get_create_identidade(
+#     db: ssp_criminosos_db_dependency,
+#     cpf: str,
+#     nome: str,
+#     nome_mae: str,
+#     nome_pai: str,
+#     data_nascimento: str,
+#     gemeo: bool = False,
+#     file: UploadFile = File(...)
+# ):
+#     try:
+#         return create_identidade(
+#             db,
+#             cpf,
+#             nome,
+#             nome_mae,
+#             nome_pai,
+#             data_nascimento,
+#             gemeo,
+#             file
+#         )
+#     except HTTPException as e:
+#         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.delete("/delete-identidade/{cpf}", dependencies=[Depends(get_auth)], tags=["CRUD"])
-async def get_delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
-    try:
-        return delete_identidade(cpf, db)
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+# @app.delete("/delete-identidade/{cpf}", dependencies=[Depends(get_auth)], tags=["CRUD"])
+# async def get_delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
+#     try:
+#         return delete_identidade(cpf, db)
+#     except HTTPException as e:
+#         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 
 
-@app.put("/update-ficha/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
-async def get_update_ficha(
-    db: ssp_criminosos_db_dependency,
-    cpf: str,
-    vulgo: str = None,
-):
-    try:
-        return update_ficha(
-            db,
-            cpf,
-            vulgo
-        )
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+# @app.put("/update-ficha/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
+# async def get_update_ficha(
+#     db: ssp_criminosos_db_dependency,
+#     cpf: str,
+#     vulgo: str = None,
+# ):
+#     try:
+#         return update_ficha(
+#             db,
+#             cpf,
+#             vulgo
+#         )
+#     except HTTPException as e:
+#         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.post("/create-crime/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
-async def get_create_crime(
-    db: ssp_criminosos_db_dependency,
-    cpf: str,
-    nome_crime: str,
-    artigo: str,
-    descricao: str,
-    data_ocorrencia: str,
-    cidade: str,
-    estado: str,
-    status: CrimeStatus,
-    vulgo: str = None,
-):
-    try:
-        return create_crime(
-            db,
-            cpf,
-            nome_crime,
-            artigo,
-            descricao,
-            data_ocorrencia,
-            cidade,
-            estado,
-            status,
-            vulgo
-        )
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+# @app.post("/create-crime/",   dependencies=[Depends(get_auth)], tags=["CRUD"])
+# async def get_create_crime(
+#     db: ssp_criminosos_db_dependency,
+#     cpf: str,
+#     nome_crime: str,
+#     artigo: str,
+#     descricao: str,
+#     data_ocorrencia: str,
+#     cidade: str,
+#     estado: str,
+#     status: CrimeStatus,
+#     vulgo: str = None,
+# ):
+#     try:
+#         return create_crime(
+#             db,
+#             cpf,
+#             nome_crime,
+#             artigo,
+#             descricao,
+#             data_ocorrencia,
+#             cidade,
+#             estado,
+#             status,
+#             vulgo
+#         )
+#     except HTTPException as e:
+#         raise HTTPException(status_code=e.status_code, detail=e.detail)

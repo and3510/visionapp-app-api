@@ -6,7 +6,7 @@ import requests
 
 
 # Esquemas de autenticação
-bearer_scheme = HTTPBearer()
+# bearer_scheme = HTTPBearer()
 oauth2_interno = OAuth2AuthorizationCodeBearer(
     authorizationUrl="https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/auth",
     tokenUrl="https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/token",
@@ -60,7 +60,7 @@ def decode_token(token: str):
 
 def get_auth(
     token_oauth: str = Depends(oauth2_interno),
-    api_key: str = Depends(bearer_scheme)
+    # api_key: str = Depends(bearer_scheme)
 ):
     """
     Autentica requisições usando OAuth2 ou API Key (JWT no header Authorization).
@@ -68,9 +68,9 @@ def get_auth(
     if token_oauth:
         payload = decode_token(token_oauth)
         return {"type": "oauth", "token": token_oauth, "payload": payload}
-    if api_key:
-        payload = decode_token(api_key.credentials)
-        return {"type": "api_key", "token": api_key.credentials, "payload": payload}
+    # if api_key:
+    #     payload = decode_token(api_key.credentials)
+    #     return {"type": "api_key", "token": api_key.credentials, "payload": payload}
     raise HTTPException(status_code=401, detail="Não autenticado")
 
 
