@@ -7,6 +7,7 @@ venv
 
 firebase_config.json
 
+.vscode/
 
 /docker-compose.yml
 /Dockerfile
