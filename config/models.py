@@ -5,7 +5,7 @@ from pgvector.sqlalchemy import Vector
 
 
 
-class Log_Resultado_Reconhecimento(SspUsuarioBase):
+class LogResultadoReconhecimento(SspUsuarioBase):
     __tablename__ = "log_resultado_reconhecimento"
 
     id_ocorrido = Column(String(30), primary_key=True, index=True)  # Gera um novo ID com no máximo 20 caracteres
@@ -19,7 +19,7 @@ class Log_Resultado_Reconhecimento(SspUsuarioBase):
     url_facial_referencia = Column(String(200), nullable=True)
 
 
-class Log_Resultado_Cpf(SspUsuarioBase):
+class LogResultadoCpf(SspUsuarioBase):
     __tablename__ = "log_resultado_cpf"
 
     id_ocorrido = Column(String(30), primary_key=True, index=True)

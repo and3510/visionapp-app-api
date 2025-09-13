@@ -57,7 +57,6 @@ def buscar_similaridade(
     if not identidades:
         raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
 
-    # usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
@@ -82,10 +81,10 @@ def buscar_similaridade(
     similaridades.sort(key=lambda x: x["distancia"])
 
     LIMIAR_CONFIANTE = 0.4
-    LIMIAR_AMBÍGUO = 0.5
-    ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBÍGUO]
+    LIMIAR_AMBIGUO = 0.5
+    ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBIGUO]
 
-    log = models.Log_Resultado_Reconhecimento(
+    log = models.LogResultadoReconhecimento(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
         matricula=matricula,
         id_usuario=user_id,

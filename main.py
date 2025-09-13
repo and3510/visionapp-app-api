@@ -18,7 +18,7 @@ from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
 
-# from pydantic import BaseModel
+
 from dotenv import load_dotenv
 from fastapi import Form
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 

@@ -43,7 +43,7 @@ def buscar_ficha_criminal(
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
-    log_resultado_cpf = models.Log_Resultado_Cpf(
+    log_resultado_cpf = models.LogResultadoCpf(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
         matricula=matricula,  # ← agora vem do parâmetro
         data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
