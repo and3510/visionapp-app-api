@@ -1,7 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import HTTPBearer, OAuth2AuthorizationCodeBearer
-import httpx
-from jose import jwt, JWTError
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2AuthorizationCodeBearer
+from jose import jwt
 import requests
 
 
@@ -70,14 +69,14 @@ def get_auth(
     raise HTTPException(status_code=401, detail="Não autenticado")
 
 
-async def fetch_keycloak_userinfo(token: str):
-    """
-    Busca informações do usuário autenticado diretamente do Keycloak.
-    """
-    url = "https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/userinfo"
-    headers = {"Authorization": f"Bearer {token}"}
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Erro ao buscar userinfo")
-        return response.json()
+# async def fetch_keycloak_userinfo(token: str):
+#     """
+#     Busca informações do usuário autenticado diretamente do Keycloak.
+#     """
+#     url = "https://sso.ajvale.com.br/realms/interno/protocol/openid-connect/userinfo"
+#     headers = {"Authorization": f"Bearer {token}"}
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url, headers=headers)
+#         if response.status_code != 200:
+#             raise HTTPException(status_code=response.status_code, detail="Erro ao buscar userinfo")
+#         return response.json()

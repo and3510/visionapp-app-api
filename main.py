@@ -13,7 +13,7 @@ from config.database import SspUsuarioBase, SspCriminososBase
 
 
 from config.models import FichaCriminalRequest
-from functions.auth_keycloak import fetch_keycloak_userinfo, get_auth
+from functions.auth_keycloak import get_auth
 from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
 from config.database import ssp_usuario_engine, ssp_criminosos_engine
@@ -94,13 +94,13 @@ async def get_buscar_ficha_criminal(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 
-@app.get("/informacoes-perfil/", tags=["Requisição do Aplicativo"])
-async def get_userinfo(user=Depends(get_auth)):
-    """
-    Retorna informações do usuário autenticado diretamente do Keycloak.
-    """
-    token = user["token"]
-    return await fetch_keycloak_userinfo(token)
+# @app.get("/informacoes-perfil/", tags=["Requisição do Aplicativo"])
+# async def get_userinfo(user=Depends(get_auth)):
+#     """
+#     Retorna informações do usuário autenticado diretamente do Keycloak.
+#     """
+#     token = user["token"]
+#     return await fetch_keycloak_userinfo(token)
 
 
 
