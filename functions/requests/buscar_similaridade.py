@@ -1,5 +1,5 @@
 import json
-from fastapi import Depends, HTTPException, UploadFile, File
+from fastapi import Depends, Form, HTTPException, UploadFile, File
 from typing import Annotated
 from sqlalchemy.orm import Session
 import shutil
@@ -32,11 +32,11 @@ SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 def buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
     user_db: ssp_usuario_db_dependency,
+    user: dict,
+    matricula: str = Form(...),
     file: UploadFile = File(...),
-    user=Depends(get_auth)
 ):
     payload = user["payload"]
-    matricula = payload.get("matricula")  # do token
     user_id = payload.get("sub")          # id único do token
     
     
@@ -57,7 +57,6 @@ def buscar_similaridade(
     if not identidades:
         raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
 
-    # usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
 
     br_tz = pytz.timezone('America/Sao_Paulo')
 
@@ -82,10 +81,10 @@ def buscar_similaridade(
     similaridades.sort(key=lambda x: x["distancia"])
 
     LIMIAR_CONFIANTE = 0.4
-    LIMIAR_AMBÍGUO = 0.5
-    ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBÍGUO]
+    LIMIAR_AMBIGUO = 0.5
+    ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBIGUO]
 
-    log = models.Log_Resultado_Reconhecimento(
+    log = models.LogResultadoReconhecimento(
         id_ocorrido=str(uuid4()).replace("-", "")[:30],
         matricula=matricula,
         id_usuario=user_id,
