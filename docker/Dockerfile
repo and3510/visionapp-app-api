@@ -1,37 +1,41 @@
-FROM python:3.11
+# Etapa 1: Builder
+FROM python:3.11 AS builder
 
-# Define diretório de trabalho
 WORKDIR /app
-
-# Evita prompts interativos ao instalar pacotes
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Atualiza e instala dependências necessárias para compilação
+# Dependências para compilar pacotes Python nativos
 RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglx-mesa0 \
     build-essential \
     cmake \
     python3-dev \
     libboost-all-dev \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && echo "Packages installed successfully"
+ && rm -rf /var/lib/apt/lists/*
 
-
-# Copia apenas o requirements.txt para usar cache
+# Copia requirements e instala deps em /install
 COPY requirements.txt .
-
-# Instala as dependências Python sem cache de pip
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --prefix=/install --no-cache-dir -r requirements.txt
 
-# Copia o restante do código do projeto
+
+# Etapa 2: Runtime
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Apenas libs necessárias para rodar, não para compilar
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglx-mesa0 \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copia pacotes Python já compilados do builder
+COPY --from=builder /install /usr/local
+
+# Copia o código da aplicação
 COPY . .
 
-# Expõe a porta da aplicação
 EXPOSE 8000
 
-# Comando para iniciar o servidor
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
