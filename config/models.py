@@ -16,7 +16,7 @@ class LogResultadoReconhecimento(SspUsuarioBase):
     id_ficha = Column(String(30), nullable=True)
     status_reconhecimento = Column(String(90), nullable=False)
     data_ocorrido = Column(String(50), nullable=False)
-    url_facial_referencia = Column(String(200), nullable=True)
+    # url_facial_referencia = Column(String(200), nullable=True)
 
 
 class LogResultadoCpf(SspUsuarioBase):
@@ -38,7 +38,7 @@ class Identidade(SspCriminososBase):
     nome_pai = Column(String(150), nullable=False)
     data_nascimento = Column(String(20), nullable=False)
     vetor_facial = Column(Vector(128), nullable=False)  # coerente com VECTOR(128)
-    url_facial = Column(String(255), nullable=False)
+    # url_facial = Column(String(255), nullable=False)
     gemeo = Column(Boolean, nullable=False, default=False)
 
 

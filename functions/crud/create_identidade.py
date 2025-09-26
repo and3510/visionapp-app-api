@@ -74,7 +74,7 @@ def create_identidade(
         data_nascimento=data_nascimento,
         vetor_facial=json.dumps(vetor_facial_reduzido),
         gemeo=False,  # Definido como False por padrão
-        url_facial=url  # Armazena a URL gerada pelo MinIO
+        # url_facial=url  # Armazena a URL gerada pelo MinIO
     )
     db.add(db_ficha)
     db.commit()
@@ -88,5 +88,5 @@ def create_identidade(
         "data_nascimento": db_ficha.data_nascimento,
         "vetor_facial": vetor_facial_reduzido,
         "gemeo": db_ficha.gemeo,  # Retorna o status de gêmeo
-        "foto_url": db_ficha.url_facial  # Retorna a URL da foto
+        # "foto_url": db_ficha.url_facial  # Retorna a URL da foto
     }
